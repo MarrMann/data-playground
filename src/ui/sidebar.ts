@@ -66,4 +66,26 @@ export class Sidebar {
   getActive(): string | null {
     return this.activeId;
   }
+
+  /**
+   * Move selection to the next (direction=1) or previous (direction=-1)
+   * visualizer, wrapping at the ends. If nothing is active yet, direction=1
+   * picks the first item and direction=-1 picks the last. No-op if disabled.
+   */
+  cycle(direction: 1 | -1): void {
+    if (!this.enabled || this.visualizers.length === 0) return;
+    const n = this.visualizers.length;
+    const currentIdx = this.activeId
+      ? this.visualizers.findIndex((v) => v.id === this.activeId)
+      : -1;
+    const nextIdx =
+      currentIdx === -1
+        ? direction === 1
+          ? 0
+          : n - 1
+        : (currentIdx + direction + n) % n;
+    const next = this.visualizers[nextIdx];
+    this.setActive(next.id);
+    this.hooks.onSelect(next.id);
+  }
 }

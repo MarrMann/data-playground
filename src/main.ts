@@ -15,6 +15,25 @@ function setFileInfo(text: string, isError = false): void {
   el.classList.toggle('error', isError);
 }
 
+function setFullscreen(on: boolean): void {
+  document.getElementById('app')?.classList.toggle('app--fullscreen', on);
+}
+
+function isFullscreen(): boolean {
+  return !!document.getElementById('app')?.classList.contains('app--fullscreen');
+}
+
+function updateHud(): void {
+  const titleEl = document.querySelector('#hud .hud-title');
+  if (!titleEl) return;
+  const activeId = sidebar?.getActive() ?? null;
+  const viz = activeId ? getVisualizer(activeId) : null;
+  const parts: string[] = [];
+  if (viz) parts.push(viz.name);
+  if (currentFile) parts.push(`${currentFile.name} · ${formatBytes(currentFile.size)}`);
+  titleEl.textContent = parts.join('  —  ');
+}
+
 function handleVisualizerSelect(id: string): void {
   if (!currentFile) return;
   const viz = getVisualizer(id);
@@ -23,6 +42,8 @@ function handleVisualizerSelect(id: string): void {
     return;
   }
   stage.mount(viz, currentFile.bytes);
+  setFullscreen(true);
+  updateHud();
 }
 
 async function handleFile(file: File): Promise<void> {
@@ -49,7 +70,47 @@ async function handleFile(file: File): Promise<void> {
     }
     stage.clear();
     stage.showDropZone();
+    setFullscreen(false);
+    updateHud();
   }
+}
+
+function isTypingTarget(el: EventTarget | null): boolean {
+  if (!(el instanceof HTMLElement)) return false;
+  if (el.isContentEditable) return true;
+  const tag = el.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+}
+
+function wireKeyboard(): void {
+  window.addEventListener('keydown', (e) => {
+    if (e.defaultPrevented) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (isTypingTarget(e.target)) return;
+
+    switch (e.key) {
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        if (currentFile) {
+          sidebar.cycle(-1);
+          e.preventDefault();
+        }
+        break;
+      case 'ArrowRight':
+      case 'ArrowDown':
+        if (currentFile) {
+          sidebar.cycle(1);
+          e.preventDefault();
+        }
+        break;
+      case 'Escape':
+        if (isFullscreen()) {
+          setFullscreen(false);
+          e.preventDefault();
+        }
+        break;
+    }
+  });
 }
 
 function wireFileInput(): void {
@@ -118,6 +179,7 @@ function init(): void {
   sidebar.setEnabled(false);
   wireFileInput();
   wireDropZone();
+  wireKeyboard();
 
   const maxLabel = document.getElementById('max-size-label');
   if (maxLabel) maxLabel.textContent = formatBytes(MAX_FILE_SIZE);

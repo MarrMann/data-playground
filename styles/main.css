@@ -31,6 +31,14 @@ html, body {
   height: 100vh;
 }
 
+#app.app--fullscreen {
+  grid-template-columns: 1fr;
+}
+
+#app.app--fullscreen #sidebar {
+  display: none;
+}
+
 /* Sidebar */
 #sidebar {
   background: var(--bg-elev);
@@ -292,6 +300,55 @@ kbd {
 
 .viz-controls button:hover {
   background: var(--border);
+}
+
+/* Fullscreen HUD (shown only when #app has .app--fullscreen) */
+.hud {
+  display: none;
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 4;
+  padding: 8px 12px;
+  background: rgba(23, 26, 33, 0.75);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--mono);
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  max-width: calc(100% - 24px);
+}
+
+#app.app--fullscreen .hud {
+  display: block;
+}
+
+.hud-title {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud-hint kbd {
+  font-size: 10px;
+  padding: 1px 5px;
+}
+
+.hud-sep {
+  margin: 0 4px;
 }
 
 /* Hex view */
