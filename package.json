@@ -1,0 +1,21 @@
+{
+  "name": "data-playground",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A toy data visualizer: drop any file and view its bytes as text, hex, image, audio, 3D points, or generative motion.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.2.0"
+  }
+}
