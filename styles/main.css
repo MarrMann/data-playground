@@ -1,0 +1,367 @@
+:root {
+  --bg: #0f1115;
+  --bg-elev: #171a21;
+  --panel: #1d2029;
+  --border: #2a2f3a;
+  --text: #e5e7eb;
+  --text-dim: #9ca3af;
+  --accent: #7aa2f7;
+  --accent-dim: #3d5a99;
+  --error: #f07178;
+  --mono: 'SF Mono', Menlo, Monaco, 'Roboto Mono', Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+#app {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: 100vh;
+}
+
+#app.app--fullscreen {
+  grid-template-columns: 1fr;
+}
+
+#app.app--fullscreen #sidebar {
+  display: none;
+}
+
+/* Sidebar */
+#sidebar {
+  background: var(--bg-elev);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+
+.brand h1 {
+  font-size: 18px;
+  margin: 0 0 4px 0;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 0 0 20px 0;
+}
+
+.file-section {
+  margin-bottom: 24px;
+}
+
+#pick-file {
+  width: 100%;
+  padding: 10px;
+  background: var(--accent-dim);
+  color: var(--text);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#pick-file:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.file-info {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  word-break: break-all;
+  min-height: 1.2em;
+}
+
+.file-info.error {
+  color: var(--error);
+}
+
+.visualizers h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+#visualizer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.viz-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  width: 100%;
+  font-size: 13px;
+  font-family: inherit;
+  display: block;
+}
+
+.viz-item:hover:not(:disabled) {
+  background: var(--panel);
+}
+
+.viz-item.active {
+  background: var(--panel);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.viz-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.viz-item .viz-name {
+  font-weight: 500;
+  display: block;
+}
+
+.viz-item .viz-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  display: block;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+
+/* Stage */
+#stage {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.drop-zone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+  transition: background 0.15s;
+}
+
+.drop-zone.dragging {
+  background: rgba(122, 162, 247, 0.08);
+  pointer-events: all;
+}
+
+.drop-zone.dragging::before {
+  content: '';
+  position: absolute;
+  inset: 16px;
+  border: 2px dashed var(--accent);
+  border-radius: 12px;
+}
+
+.drop-zone-inner {
+  text-align: center;
+  color: var(--text-dim);
+  user-select: none;
+}
+
+.drop-hint {
+  font-size: 20px;
+  margin: 0 0 6px 0;
+  color: var(--text);
+}
+
+.drop-sub {
+  font-size: 13px;
+  margin: 0;
+}
+
+kbd {
+  font-family: var(--mono);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.drop-zone.hidden {
+  display: none;
+}
+
+.stage-content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Shared visualizer styles */
+.viz-root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.viz-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.viz-scroll {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+  color: var(--text);
+}
+
+.viz-error {
+  padding: 24px;
+  color: var(--error);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.viz-overlay {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  padding: 6px 10px;
+  background: rgba(23, 26, 33, 0.85);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.viz-controls {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+}
+
+.viz-controls button {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.viz-controls button:hover {
+  background: var(--border);
+}
+
+/* Fullscreen HUD (shown only when #app has .app--fullscreen) */
+.hud {
+  display: none;
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 4;
+  padding: 8px 12px;
+  background: rgba(23, 26, 33, 0.75);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--mono);
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  max-width: calc(100% - 24px);
+}
+
+#app.app--fullscreen .hud {
+  display: block;
+}
+
+.hud-title {
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-hint {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud-hint kbd {
+  font-size: 10px;
+  padding: 1px 5px;
+}
+
+.hud-sep {
+  margin: 0 4px;
+}
+
+/* Hex view */
+.hex-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 180px;
+  gap: 16px;
+}
+
+.hex-addr {
+  color: var(--text-dim);
+}
+
+.hex-ascii {
+  color: var(--accent);
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>data-playground</title>
+    <link rel="stylesheet" href="/styles/main.css" />
+  </head>
+  <body>
+    <div id="app">
+      <aside id="sidebar">
+        <header class="brand">
+          <h1>data-playground</h1>
+          <p class="tagline">Drop a file. See it as anything.</p>
+        </header>
+
+        <section class="file-section">
+          <button id="pick-file" type="button">Pick a file</button>
+          <input id="file-input" type="file" hidden />
+          <div id="file-info" class="file-info">No file loaded</div>
+        </section>
+
+        <section class="visualizers">
+          <h2>Visualizers</h2>
+          <ul id="visualizer-list"></ul>
+        </section>
+
+        <footer class="sidebar-footer">
+          <small>Max file size: <span id="max-size-label">—</span></small>
+        </footer>
+      </aside>
+
+      <main id="stage">
+        <div id="drop-zone" class="drop-zone">
+          <div class="drop-zone-inner">
+            <p class="drop-hint">Drop any file here</p>
+            <p class="drop-sub">or use <kbd>Pick a file</kbd> on the left</p>
+          </div>
+        </div>
+        <div id="stage-content" class="stage-content"></div>
+        <div id="hud" class="hud" aria-hidden="true">
+          <div class="hud-title"></div>
+          <div class="hud-hint">
+            <kbd>←</kbd><kbd>→</kbd>
+            <span>switch</span>
+            <span class="hud-sep">·</span>
+            <kbd>Esc</kbd>
+            <span>menu</span>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
