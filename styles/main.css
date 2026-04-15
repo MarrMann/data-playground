@@ -365,3 +365,35 @@ kbd {
 .hex-ascii {
   color: var(--accent);
 }
+
+/* Text view — auto-scrolling teleprompter */
+.text-viz {
+  overflow: hidden;
+}
+
+.text-scroller {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.text-scroller-inner {
+  padding: 24px 28px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  will-change: transform;
+}
+
+.text-hint {
+  left: auto;
+  right: 12px;
+}
+
+.text-hint kbd {
+  font-size: 10px;
+  padding: 1px 5px;
+}
