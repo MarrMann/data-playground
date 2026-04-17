@@ -1,7 +1,6 @@
 import type { Visualizer } from '../types';
 
 const MAX_DECODE_BYTES = 2 * 1024 * 1024; // 2 MB of text at a time
-const LINE_STEP_MS = 60; // how long each line sits on screen before the next one pushes up
 
 /** Map C0 / C1 control bytes to printable replacement glyphs. */
 function visualizeControls(s: string): string {
@@ -34,7 +33,8 @@ function getLineHeightPx(el: HTMLElement): number {
 
 export const textVisualizer: Visualizer = (() => {
   let root: HTMLElement | null = null;
-  let intervalId: number | null = null;
+  let rafId: number | null = null;
+  let running = false;
   let keyHandler: ((e: KeyboardEvent) => void) | null = null;
 
   return {
@@ -79,22 +79,23 @@ export const textVisualizer: Visualizer = (() => {
       let offset = 0;
 
       const step = () => {
+        if (!running) return;
         offset += lineHeight;
         inner.style.transform = `translateY(${-offset}px)`;
-        // Stop when the bottom of the content has risen past the top of the viewport.
         if (offset >= inner.offsetHeight) {
-          if (intervalId != null) {
-            clearInterval(intervalId);
-            intervalId = null;
-          }
+          running = false;
+          rafId = null;
+          return;
         }
+        rafId = requestAnimationFrame(step);
       };
 
       const start = () => {
         offset = 0;
         inner.style.transform = 'translateY(0)';
-        if (intervalId != null) clearInterval(intervalId);
-        intervalId = window.setInterval(step, LINE_STEP_MS);
+        running = true;
+        if (rafId != null) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(step);
       };
 
       start();
@@ -114,9 +115,10 @@ export const textVisualizer: Visualizer = (() => {
       window.addEventListener('keydown', keyHandler);
     },
     unmount() {
-      if (intervalId != null) {
-        clearInterval(intervalId);
-        intervalId = null;
+      running = false;
+      if (rafId != null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
       }
       if (keyHandler) {
         window.removeEventListener('keydown', keyHandler);

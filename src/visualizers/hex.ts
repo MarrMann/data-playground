@@ -5,8 +5,8 @@ const ROW_HEIGHT = 19; // px; must match .hex-row line-height
 const ROW_BUFFER = 8;  // extra rows rendered above/below viewport
 
 /**
- * Hex dump with simple virtual scrolling so that 50 MB files (~3M rows)
- * don't blow up the DOM.
+ * Hex dump with virtual scrolling so that 50 MB files (~3M rows) don't blow up
+ * the DOM. Auto-scrolls one row per frame; Space restarts from the top.
  */
 class HexRenderer {
   private root!: HTMLElement;
@@ -15,6 +15,9 @@ class HexRenderer {
   private rowHost!: HTMLDivElement;
   private bytes!: Uint8Array;
   private totalRows = 0;
+  private rafId: number | null = null;
+  private running = false;
+  private keyHandler: ((e: KeyboardEvent) => void) | null = null;
   private onScroll = () => this.renderVisibleRows();
 
   mount(container: HTMLElement, bytes: Uint8Array): void {
@@ -29,7 +32,6 @@ class HexRenderer {
     this.viewport.style.position = 'relative';
 
     this.spacer = document.createElement('div');
-    this.spacer.style.height = `${this.totalRows * ROW_HEIGHT}px`;
     this.spacer.style.position = 'relative';
 
     this.rowHost = document.createElement('div');
@@ -41,15 +43,70 @@ class HexRenderer {
     this.spacer.appendChild(this.rowHost);
     this.viewport.appendChild(this.spacer);
     this.root.appendChild(this.viewport);
+
+    const hint = document.createElement('div');
+    hint.className = 'viz-overlay text-hint';
+    hint.innerHTML = '<kbd>Space</kbd> to restart';
+    this.root.appendChild(hint);
+
     container.appendChild(this.root);
+
+    // Extend spacer so content can scroll fully off the top, leaving an empty viewport.
+    const vpHeight = this.viewport.clientHeight;
+    this.spacer.style.height = `${this.totalRows * ROW_HEIGHT + vpHeight}px`;
 
     this.viewport.addEventListener('scroll', this.onScroll, { passive: true });
     this.renderVisibleRows();
+    this.startScroll();
+
+    this.keyHandler = (e) => {
+      if (e.code !== 'Space' && e.key !== ' ') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target;
+      if (t instanceof HTMLElement) {
+        if (t.isContentEditable) return;
+        const tag = t.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      }
+      e.preventDefault();
+      this.viewport.scrollTop = 0;
+      this.renderVisibleRows();
+      this.startScroll();
+    };
+    window.addEventListener('keydown', this.keyHandler);
   }
 
   unmount(): void {
+    this.running = false;
+    if (this.rafId != null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    if (this.keyHandler) {
+      window.removeEventListener('keydown', this.keyHandler);
+      this.keyHandler = null;
+    }
     this.viewport?.removeEventListener('scroll', this.onScroll);
     this.root?.remove();
+  }
+
+  private startScroll(): void {
+    this.running = true;
+    if (this.rafId != null) cancelAnimationFrame(this.rafId);
+
+    const step = () => {
+      if (!this.running) return;
+      this.viewport.scrollTop += ROW_HEIGHT;
+      this.renderVisibleRows();
+      const maxScroll = this.totalRows * ROW_HEIGHT;
+      if (this.viewport.scrollTop >= maxScroll) {
+        this.running = false;
+        this.rafId = null;
+        return;
+      }
+      this.rafId = requestAnimationFrame(step);
+    };
+    this.rafId = requestAnimationFrame(step);
   }
 
   private renderVisibleRows(): void {
@@ -110,7 +167,7 @@ export const hexVisualizer: Visualizer = (() => {
   return {
     id: 'hex',
     name: 'Hex dump',
-    description: 'Address + hex + ASCII grid',
+    description: 'Auto-scrolling hex + ASCII, Space to restart',
     category: 'raw',
     mount(container, bytes) {
       renderer = new HexRenderer();
